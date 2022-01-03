@@ -23,3 +23,5 @@ roslaunch nav40_driver nav40_driver.launch
 ```bash
 rostopic echo /imu/data
 ```
+
+![alt 属性文本](./res/screenshot_5.png)
