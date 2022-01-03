@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="nav40_driver" type="nav40_driver_node" name="nav40_driver_node" output="screen" />
+</launch>
