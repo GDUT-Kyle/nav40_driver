@@ -27,8 +27,8 @@ APM_Datatype APM;            //创建帧结构体
 ImuDriverNode::ImuDriverNode() : n_("~")
 {
 	n_.param("dog_device", imu_device_, std::string("/dev/ttyUSB0"));
-	n_.param("baud", baud_, 115200);
-	n_.param("framerate", framerate_, 300);
+	n_.param("baud", baud_, 460800);
+	n_.param("framerate", framerate_, 500);
 	n_.param("isVerif", isVerif_, false);
 
 	pub_imu = n_.advertise<sensor_msgs::Imu>("/imu/data", 5);
@@ -70,14 +70,27 @@ void ImuDriverNode::disconnect()
 
 void ImuDriverNode::checkPort()
 {
-	// mtx.lock();
+	mtx.lock();
 	std::string readData;
-	// serialPort.Read(readData);
-	my_serial.readline(readData, (size_t)128, std::string(FrameHead));
+	
+	my_serial.readline(readData, (size_t)512, std::string(FrameHead));
+	// my_serial.read(readData, (size_t)512);
+
+	mtx.unlock();
+
+	// for(unsigned char n : readData)
+    //     std::cout << "0x" <<  std::hex << static_cast<unsigned short>(n) << " " ;//输出十六进制FF
+	// std::cout<<std::endl<<"______________________________________"<<std::endl;
 
 	// std::cout<<"readData.size() : "<<std::dec<<readData.size()<<std::endl;
 	if(readData.size()!=(unsigned int)readData[0] || readData.size()!=NAV_DL) // 验证帧长度
+	{
+		// for(unsigned char n : readData)
+        // 	cout << "0x" <<  std::hex << static_cast<unsigned short>(n) << " " ;//输出十六进制FF
+		std::cout<<std::endl;
+		ROS_WARN("Wrong message length!");
 		return;
+	}
 
 	unsigned int checkSum = 0;
 	unsigned int checkRes_L = 0;
@@ -90,14 +103,14 @@ void ImuDriverNode::checkPort()
 	checkRes_H = ((checkSum & 0xff00)>>8);
 	// cout << "0x" <<  std::hex << checkRes_L << ", "<< "0x"<<checkRes_H <<std::endl;
 	if(checkRes_L != readData[readData.size()-4] || checkRes_H != readData[readData.size()-3])
-	{	
-		// std::cout<<"____________________________"<<std::endl;
+	{
+		// for(unsigned char n : readData)
+        // 	cout << "0x" <<  std::hex << static_cast<unsigned short>(n) << " " ;//输出十六进制FF
+		std::cout<<std::endl;
+		ROS_WARN("Message checksum error!");
 		return;
 	}
 	
-	// for(unsigned char n : readData)
-    //     cout << "0x" <<  std::hex << static_cast<unsigned short>(n) << " " ;//输出十六进制FF
-
 	unsigned int offset = 0;
 	memcpy(&APM.zhen_len, readData.c_str()+offset , 1); offset+=1;  //注入 缓冲区
 	memcpy(&APM.zhen_flag, readData.c_str()+offset , 1); offset+=1;
