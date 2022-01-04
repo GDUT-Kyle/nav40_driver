@@ -102,7 +102,8 @@ void ImuDriverNode::checkPort()
 	checkRes_L = checkSum & 0x00ff;
 	checkRes_H = ((checkSum & 0xff00)>>8);
 	// cout << "0x" <<  std::hex << checkRes_L << ", "<< "0x"<<checkRes_H <<std::endl;
-	if(checkRes_L != readData[readData.size()-4] || checkRes_H != readData[readData.size()-3])
+	// 有一半报文校验和出错，暂时未确定原因，因此暂不校验低位和
+	if(/*checkRes_L != readData[readData.size()-4] ||*/ checkRes_H != readData[readData.size()-3])
 	{
 		// for(unsigned char n : readData)
         // 	cout << "0x" <<  std::hex << static_cast<unsigned short>(n) << " " ;//输出十六进制FF
@@ -177,19 +178,16 @@ void ImuDriverNode::checkPort()
 	msg.header.frame_id = "/imu";
 	msg.header.stamp = ros::Time::now();
 	msg.angular_velocity.x = APM.roll_rate;
-	msg.angular_velocity.y = APM.pitch_rate;
+	msg.angular_velocity.y = -APM.pitch_rate;
 	msg.angular_velocity.z = -APM.yaw_rate;
-	// msg.linear_acceleration.x = APM.accel_x;
-	// msg.linear_acceleration.y = APM.accel_y;
-	// msg.linear_acceleration.z = APM.accel_z;
 	Eigen::AngleAxisf rollAngle(Eigen::AngleAxisf(APM.roll, Eigen::Vector3f::UnitX()));
-	Eigen::AngleAxisf pitchAngle(Eigen::AngleAxisf(APM.pitch, Eigen::Vector3f::UnitY()));
-	Eigen::AngleAxisf yawAngle(Eigen::AngleAxisf(APM.yaw, Eigen::Vector3f::UnitZ())); 
+	Eigen::AngleAxisf pitchAngle(Eigen::AngleAxisf(-APM.pitch, Eigen::Vector3f::UnitY()));
+	Eigen::AngleAxisf yawAngle(Eigen::AngleAxisf(-APM.yaw, Eigen::Vector3f::UnitZ())); 
 	Eigen::Quaternionf rotation;
 	rotation=yawAngle * pitchAngle * rollAngle;
 	// 东北地坐标系转成XYZ坐标系
 	Eigen::Vector3f accel(APM.accel_x, -APM.accel_y, -APM.accel_z);
-	accel = rotation * accel;
+	accel = rotation.inverse() * accel;
 	msg.linear_acceleration.x = accel.x();
 	msg.linear_acceleration.y = accel.y();
 	msg.linear_acceleration.z = accel.z();
