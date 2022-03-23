@@ -20,7 +20,7 @@ using namespace std;
 #define NAV_DH2    0x90   //帧头
 #define MAXSIZE    1024   //缓冲区长度
 
-char FrameHead[]={(char)NAV_DH1, (char)NAV_DH2};
+string FrameHead={(char)NAV_DH1, (char)NAV_DH2};
 
 APM_Datatype APM;            //创建帧结构体
 
@@ -31,7 +31,7 @@ ImuDriverNode::ImuDriverNode() : n_("~")
 	n_.param("framerate", framerate_, 500);
 	n_.param("isVerif", isVerif_, false);
 
-	pub_imu = n_.advertise<sensor_msgs::Imu>("/imu/data", 5);
+	pub_imu = n_.advertise<sensor_msgs::Imu>("/livox/imu", 5);
 
 	connect();
 }
@@ -73,7 +73,7 @@ void ImuDriverNode::checkPort()
 	mtx.lock();
 	std::string readData;
 	
-	my_serial.readline(readData, (size_t)512, std::string(FrameHead));
+	my_serial.readline(readData, (size_t)512, FrameHead);
 	// my_serial.read(readData, (size_t)512);
 
 	mtx.unlock();
