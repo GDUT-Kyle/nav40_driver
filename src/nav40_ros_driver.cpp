@@ -32,7 +32,7 @@ ImuDriverNode::ImuDriverNode() : n_("~")
 	n_.param("framerate", framerate_, 500);
 	n_.param("isVerif", isVerif_, false);
 
-	pub_imu = n_.advertise<sensor_msgs::Imu>("/livox/imu", 5);
+	pub_imu = n_.advertise<sensor_msgs::Imu>("/imu/data", 5);
 	pub_gps = n_.advertise<nav40_driver::sensorgps>("/nav40/gps", 5);
 
 	connect();
