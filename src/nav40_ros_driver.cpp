@@ -12,6 +12,7 @@
 #include <std_msgs/Float32.h>
 #include "nav40_demo.h"
 #include "ch_imu_driver.hpp"
+#include "nav40_driver/sensorgps.h"
 
 using namespace std;
 
@@ -32,6 +33,7 @@ ImuDriverNode::ImuDriverNode() : n_("~")
 	n_.param("isVerif", isVerif_, false);
 
 	pub_imu = n_.advertise<sensor_msgs::Imu>("/livox/imu", 5);
+	pub_gps = n_.advertise<nav40_driver::sensorgps>("/nav40/gps", 5);
 
 	connect();
 }
@@ -87,8 +89,8 @@ void ImuDriverNode::checkPort()
 	{
 		// for(unsigned char n : readData)
         // 	cout << "0x" <<  std::hex << static_cast<unsigned short>(n) << " " ;//输出十六进制FF
-		std::cout<<std::endl;
-		ROS_WARN("Wrong message length!");
+		// std::cout<<std::endl;
+		// ROS_WARN("Wrong message length!");
 		return;
 	}
 
@@ -197,6 +199,19 @@ void ImuDriverNode::checkPort()
 	msg.orientation.w = rotation.w();
 
 	pub_imu.publish(msg);
+
+	nav40_driver::sensorgps gps_msg;
+	gps_msg.header = msg.header;
+	gps_msg.lat = APM.lat;
+	gps_msg.lon = APM.lon;
+	gps_msg.alt = APM.alt;
+	gps_msg.satenum = APM.satellite_num;
+	gps_msg.roll = APM.roll;
+	gps_msg.pitch = -APM.pitch;
+	gps_msg.heading = -APM.yaw;
+	gps_msg.status = APM.state;
+	pub_gps.publish(gps_msg);
+
 }
 
 void ImuDriverNode::spin()

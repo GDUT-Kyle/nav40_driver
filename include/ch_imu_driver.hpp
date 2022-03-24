@@ -17,6 +17,7 @@ protected:
     ros::NodeHandle n_;
 
     ros::Publisher pub_imu;
+    ros::Publisher pub_gps;
 
     std::string imu_device_;
     int baud_;

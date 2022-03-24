@@ -13,10 +13,23 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   serial
   sensor_msgs
+  # sleipnir_msgs
+  message_generation
+)
+
+add_message_files(
+  FILES
+  sensorgps.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs
 )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime
 )
 
 
